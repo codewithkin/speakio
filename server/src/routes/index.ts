@@ -46,12 +46,11 @@ router.get("/recording/:id", async (req: Request, res: Response) => {
 // Define a route to create a new recording
 router.post("/recording", async (req: Request, res: Response) => {
   // Get the name, body, userId, and siteId from the request body
-  const { name, body, userId, site } = req.body;
+  const { body, userId, site } = req.body;
 
   // Create a new recording with the given data
   const recording = await prisma.recording.create({
     data: {
-      name,
       body,
       userId,
       site,
