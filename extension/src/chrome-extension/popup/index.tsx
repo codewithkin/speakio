@@ -1,18 +1,24 @@
 import { CirclePlus } from "lucide-react";
 import "../global.css";
 import Recorder from "../../components/Recorder";
+import Login from "../../components/auth/login";
 import { useEffect, useState } from "react";
 
 export const Popup = () => {
   const [recordings, setRecordings] = useState([]);
   const [error, setError] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  /* useEffect(() => {
-    fetch("http://localhost:8080/api/speakio/recording")
-      .then((res) => res.json())
-      .then((data) => setRecordings(data))
-      .catch((err) => setError(err.message));
-  }, []); */
+  useEffect(() => {
+    const session = localStorage.getItem("session");
+    if (session) {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+  if (!isLoggedIn) {
+    return <Login />;
+  }
 
   return (
     <div>

@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 // Create a new Express router
 const router = Router();
@@ -7,25 +8,59 @@ const router = Router();
 // Create a new Prisma client
 const prisma = new PrismaClient();
 
+// Define a route to sign up a new user
+router.post("/signup", async (req: Request, res: Response) => {
+  const { name, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  try {
+    const user = await prisma.user.create({
+      data: {
+        name,
+        password: hashedPassword,
+      },
+    });
+    res.json({ message: "User registered successfully", userId: user.id });
+  } catch (error) {
+    res.status(400).json({ error: "User registration failed" });
+  }
+});
+
+// Define a route to log in a user
+router.post("/login", async (req: Request, res: Response) => {
+  const { name, password } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: { name },
+  });
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordValid) {
+    return res.status(401).json({ error: "Invalid password" });
+  }
+
+  res.json({ message: "Login successful", userId: user.id });
+});
+
 // Define a route to get all recordings
 router.get("/recording", async (req: Request, res: Response) => {
-  // Find all recordings
   const recordings = await prisma.recording.findMany({
     include: {
       user: true,
     },
   });
-
-  // Return the list of recordings as JSON
   res.json(recordings);
 });
 
 // Define a route to get a single recording by ID
 router.get("/recording/:id", async (req: Request, res: Response) => {
-  // Get the ID from the request parameters
   const id = req.params.id;
 
-  // Find the recording with the given ID
   const recording = await prisma.recording.findUnique({
     where: { id },
     include: {
@@ -33,22 +68,18 @@ router.get("/recording/:id", async (req: Request, res: Response) => {
     },
   });
 
-  // If the recording is not found, return a 404 error
   if (!recording) {
     res.status(404).send({ error: "Recording not found" });
     return;
   }
 
-  // Return the recording as JSON
   res.json(recording);
 });
 
 // Define a route to create a new recording
 router.post("/recording", async (req: Request, res: Response) => {
-  // Get the name, body, userId, and siteId from the request body
   const { body, userId, site } = req.body;
 
-  // Create a new recording with the given data
   const recording = await prisma.recording.create({
     data: {
       body,
@@ -60,19 +91,14 @@ router.post("/recording", async (req: Request, res: Response) => {
     },
   });
 
-  // Return the new recording as JSON
   res.json(recording);
 });
 
 // Define a route to update an existing recording
 router.put("/recording/:id", async (req: Request, res: Response) => {
-  // Get the ID from the request parameters
   const id = req.params.id;
-
-  // Get the name, body, userId, and site from the request body
   const { name, body, userId, site } = req.body;
 
-  // Update the recording with the given ID and data
   const recording = await prisma.recording.update({
     where: { id },
     data: {
@@ -86,19 +112,15 @@ router.put("/recording/:id", async (req: Request, res: Response) => {
     },
   });
 
-  // Return the updated recording as JSON
   res.json(recording);
 });
 
 // Define a route to delete a recording by ID
 router.delete("/recording/:id", async (req: Request, res: Response) => {
-  // Get the ID from the request parameters
   const id = req.params.id;
 
-  // Delete the recording with the given ID
   await prisma.recording.delete({ where: { id } });
 
-  // Return an empty 204 response
   res.status(204).send({});
 });
 
