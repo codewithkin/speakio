@@ -1,0 +1,16 @@
+{
+    "manifest_version": 3,
+    "name": "Chrome Extension Starter",
+    "version": "1.0.0",
+    "action" : {
+      "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
+  "description": "This is the description of your extension",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+  }
